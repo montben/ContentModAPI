@@ -1,0 +1,19 @@
+# Sexual Content Dataset Summary
+
+Total samples: 5,000
+
+## Label Distribution:
+- toxicity: 5,000 (100.00%)
+- hate_speech: 0 (0.00%)
+- harassment: 5,000 (100.00%)
+- self_harm: 0 (0.00%)
+- violence: 0 (0.00%)
+- sexual: 5,000 (100.00%)
+- profanity: 5,000 (100.00%)
+- spam: 0 (0.00%)
+
+## Text Statistics:
+- Average length: 34.52 characters
+- Median length: 27 characters
+- Min length: 1 characters
+- Max length: 485 characters

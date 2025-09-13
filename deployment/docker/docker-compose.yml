@@ -1,0 +1,138 @@
+# =============================================================================
+# Muzzle API - Development Environment
+# =============================================================================
+# This docker-compose file sets up a complete development environment with:
+# - Muzzle API service
+# - PostgreSQL database
+# - Redis for Celery
+# - pgAdmin for database management (optional)
+
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------------------
+  # Muzzle API Service
+  # ---------------------------------------------------------------------------
+  muzzle-api:
+    build:
+      context: ../../
+      dockerfile: deployment/docker/Dockerfile
+    container_name: muzzle-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://muzzle_user:muzzle_pass@postgres:5432/muzzle_db
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DEBUG=true
+      - LOG_LEVEL=INFO
+    volumes:
+      - ../../artifacts:/app/artifacts
+      - ../../logs:/app/logs
+      - ../../data:/app/data
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - muzzle-network
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: muzzle-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: muzzle_db
+      POSTGRES_USER: muzzle_user
+      POSTGRES_PASSWORD: muzzle_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    restart: unless-stopped
+    networks:
+      - muzzle-network
+
+  # ---------------------------------------------------------------------------
+  # Redis for Celery
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: muzzle-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - muzzle-network
+
+  # ---------------------------------------------------------------------------
+  # pgAdmin (Optional - for database management)
+  # ---------------------------------------------------------------------------
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: muzzle-pgadmin
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@muzzle.dev
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    networks:
+      - muzzle-network
+    profiles:
+      - tools  # Only start with: docker-compose --profile tools up
+
+  # ---------------------------------------------------------------------------
+  # Celery Worker (for async tasks)
+  # ---------------------------------------------------------------------------
+  celery-worker:
+    build:
+      context: ../../
+      dockerfile: deployment/docker/Dockerfile
+    container_name: muzzle-celery-worker
+    command: celery -A muzzle.core.celery worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql://muzzle_user:muzzle_pass@postgres:5432/muzzle_db
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ../../artifacts:/app/artifacts
+      - ../../logs:/app/logs
+      - ../../data:/app/data
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - muzzle-network
+    profiles:
+      - celery  # Only start with: docker-compose --profile celery up
+
+# =============================================================================
+# Volumes
+# =============================================================================
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  muzzle-network:
+    driver: bridge
