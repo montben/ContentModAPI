@@ -164,7 +164,7 @@ class MultiLabelTrainer:
             learning_rate=config.get('learning_rate', 2e-5),
             logging_dir=f'{output_dir}/logs',
             logging_steps=100,
-            evaluation_strategy="steps",
+            eval_strategy="steps",  # Changed from evaluation_strategy
             eval_steps=500,
             save_strategy="steps",
             save_steps=500,
