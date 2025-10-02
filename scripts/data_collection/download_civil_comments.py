@@ -59,7 +59,7 @@ def map_civil_comments_labels(row) -> dict:
     }
 
 
-def download_civil_comments(output_dir: str, sample_size: Optional[int] = None) -> Path:
+def download_civil_comments(output_dir: str, sample_size: Optional[int] = None, balanced: bool = False) -> Path:
     """
     Download and process Jigsaw Civil Comments dataset.
 
@@ -89,9 +89,34 @@ def download_civil_comments(output_dir: str, sample_size: Optional[int] = None) 
 
         # Sample data if requested (useful for testing)
         if sample_size and sample_size < len(df):
-            logger.info(f"Sampling {sample_size} examples for testing")
-            # Stratified sampling to keep balance of toxic vs non-toxic
-            df = df.sample(n=sample_size, random_state=42).reset_index(drop=True)
+            if balanced:
+                logger.info(f"Creating BALANCED sample of {sample_size} examples...")
+                # Identify toxic samples (any toxicity > 0.5)
+                toxic_mask = (
+                    (df['toxicity'] >= 0.5) |
+                    (df['severe_toxicity'] >= 0.5) |
+                    (df['obscene'] >= 0.5) |
+                    (df['threat'] >= 0.5) |
+                    (df['insult'] >= 0.5) |
+                    (df['identity_attack'] >= 0.5)
+                )
+
+                toxic_df = df[toxic_mask]
+                safe_df = df[~toxic_mask]
+
+                # Take 60% toxic, 40% safe for better balance
+                n_toxic = min(len(toxic_df), int(sample_size * 0.6))
+                n_safe = sample_size - n_toxic
+
+                toxic_sample = toxic_df.sample(n=n_toxic, random_state=42)
+                safe_sample = safe_df.sample(n=n_safe, random_state=42)
+
+                df = pd.concat([toxic_sample, safe_sample]).sample(frac=1, random_state=42).reset_index(drop=True)
+                logger.info(f"  ✅ Toxic: {n_toxic} ({n_toxic/sample_size*100:.1f}%)")
+                logger.info(f"  ✅ Safe: {n_safe} ({n_safe/sample_size*100:.1f}%)")
+            else:
+                logger.info(f"Sampling {sample_size} examples (unbalanced)")
+                df = df.sample(n=sample_size, random_state=42).reset_index(drop=True)
 
         # Process the data
         processed_data = []
