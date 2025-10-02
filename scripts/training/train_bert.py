@@ -87,7 +87,7 @@ class MultiLabelTrainer:
             return self.tokenizer(
                 examples['text'],
                 truncation=True,
-                padding=True,
+                padding='max_length',  # Pad all to max_length
                 max_length=512
             )
 
