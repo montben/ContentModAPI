@@ -2,9 +2,18 @@
 
 This project provides a FastAPI-based microservice that uses machine learning to moderate text and images for toxicity, hate speech, and inappropriate content.
 
+**🚀 NEW: Simplified training with Google Colab!** Train your model with free GPU in ~30 minutes. [See Colab Guide →](COLAB_GUIDE.md)
+
 ## Overview
 
-The Muzzle platform is an AI-powered content moderation system that enables automated screening of user-generated content. The system allows applications to integrate content moderation capabilities through REST API endpoints that can handle text analysis, image classification, and batch processing of content.
+The Muzzle platform is an AI-powered content moderation system that enables automated screening of user-generated content. The system uses a **single comprehensive dataset** (Civil Comments, 300k samples) with **6 core labels** for better training results.
+
+**Key Features:**
+- ✅ Single, high-quality dataset (Civil Comments from Google/Jigsaw)
+- ✅ 6 comprehensive labels: toxicity, hate speech, harassment, violence, sexual, profanity
+- ✅ Google Colab notebook for easy GPU training
+- ✅ FastAPI endpoints for production use
+- ✅ Pre-trained BERT model ready to deploy
 
 ## Structure
 
@@ -39,10 +48,22 @@ deployment/
 
 ## Quick Start
 
+### Option 1: Train on Google Colab (Recommended) 🚀
+
+**Best for:** Getting started quickly with free GPU
+
+1. Push your code to GitHub
+2. Open `notebooks/simplified_training.ipynb` in Colab
+3. Enable GPU and run all cells
+4. Get trained model in ~30-45 minutes
+
+**[📖 Full Colab Guide](COLAB_GUIDE.md)** | **[✅ Quick Checklist](COLAB_CHECKLIST.md)**
+
+### Option 2: Train Locally
+
 **Prerequisites:**
 - Python 3.11 or later
-- PostgreSQL database (Docker setup provided)
-- Redis server (for async processing)
+- GPU recommended (or CPU with patience)
 
 **Install dependencies:**
 ```bash
@@ -53,6 +74,18 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 pip install -e .
+```
+
+**Train the model:**
+```bash
+# Download dataset
+python scripts/data_collection/download_civil_comments.py --sample-size 10000
+
+# Train
+python scripts/training/train_bert.py \
+  --data-path data/datasets/civil_comments/processed_data.csv \
+  --epochs 2 \
+  --batch-size 16
 ```
 
 **Set up environment:**
@@ -128,25 +161,31 @@ docker-compose -f deployment/docker/docker-compose.yml up
 alembic upgrade head
 ```
 
-## Current Status
+## Project Status
 
 **✅ Completed:**
-- Project structure and configuration
-- Basic FastAPI application with health endpoints
-- Mock API endpoints for text and image moderation
-- Docker development environment
-- Basic testing setup
+- ✅ Project structure and configuration
+- ✅ Simplified training pipeline (single dataset)
+- ✅ Google Colab notebook for GPU training
+- ✅ 6-label content moderation schema
+- ✅ BERT training scripts
+- ✅ Data download and preprocessing
+- ✅ Basic FastAPI application
 
-**🔄 In Progress:**
-- API endpoint organization and validation
-- Configuration management improvements
-
-**📋 Planned:**
-- ML model integration (DistilBERT, NSFW classifiers)
-- Database models and migrations
-- Async processing with Celery
+**🔄 Next Steps:**
+- Integrate trained model into API endpoints
+- Add model inference service
+- Database for moderation history
 - Authentication and rate limiting
-- Comprehensive testing suite
+- Batch processing with Celery
+
+## Documentation
+
+- **[Colab Training Guide](COLAB_GUIDE.md)** - Train your model with free GPU
+- **[Quick Checklist](COLAB_CHECKLIST.md)** - Step-by-step Colab checklist
+- **[Label Schema](scripts/preprocessing/label_schema.py)** - 6-label content moderation schema
+- **[Training Notebook](notebooks/simplified_training.ipynb)** - Interactive training
+- **[Dataset Info](data/datasets/civil_comments/)** - Civil Comments dataset details
 
 ## Component Relationships
 

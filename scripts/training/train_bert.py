@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 class MultiLabelTrainer:
     """Custom trainer for multi-label classification."""
 
-    def __init__(self, model_name: str = "bert-base-uncased", num_labels: int = 8):
+    def __init__(self, model_name: str = "bert-base-uncased", num_labels: int = 6):
         self.model_name = model_name
         self.num_labels = num_labels
         self.tokenizer = None

@@ -1,0 +1,22 @@
+# Civil Comments Dataset Summary
+
+Total samples: 5,000
+
+## Label Distribution:
+- toxicity: 359 (7.18%)
+- hate_speech: 40 (0.8%)
+- harassment: 284 (5.68%)
+- violence: 6 (0.12%)
+- sexual: 29 (0.58%)
+- profanity: 20 (0.4%)
+
+## Text Statistics:
+- Average length: 299.29 characters
+- Median length: 204 characters
+- Min length: 1 characters
+- Max length: 1000 characters
+
+## Multi-Label Statistics:
+- Average labels per sample: 0.15
+- Samples with no labels: 4,632
+- Samples with multiple labels: 295
