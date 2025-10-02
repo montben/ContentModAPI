@@ -82,16 +82,19 @@ class MultiLabelTrainer:
 
         logger.info(f"Train: {len(train_df)}, Val: {len(val_df)}, Test: {len(test_df)}")
 
-        # Convert to HuggingFace datasets
-        train_dataset = Dataset.from_pandas(train_df)
-        val_dataset = Dataset.from_pandas(val_df)
-        test_dataset = Dataset.from_pandas(test_df)
+        # Clean text data - ensure all are strings
+        for df_subset in [train_df, val_df, test_df]:
+            df_subset['text'] = df_subset['text'].fillna('').astype(str)
 
-        # Tokenize function - convert to list first
+        # Convert to HuggingFace datasets (reset index to avoid issues)
+        train_dataset = Dataset.from_pandas(train_df.reset_index(drop=True))
+        val_dataset = Dataset.from_pandas(val_df.reset_index(drop=True))
+        test_dataset = Dataset.from_pandas(test_df.reset_index(drop=True))
+
+        # Tokenize function
         def tokenize_function(examples):
-            texts = examples['text']
-            if not isinstance(texts, list):
-                texts = texts.tolist()
+            # Ensure texts are list of strings
+            texts = [str(text) for text in examples['text']]
             return self.tokenizer(
                 texts,
                 truncation=True,
